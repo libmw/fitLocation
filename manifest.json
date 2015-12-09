@@ -646,7 +646,10 @@
 					"js/shortcut.js",
 					"icon.png",
 					"plus/doc.html",
-					"js/update.js"
+					"js/update.js",
+					"fonts/mui.ttf",
+					"css/mui.min.css",
+					"js/common.js"
 				],
 				"refer": [
 					"plus/payment.html",
@@ -680,7 +683,8 @@
 					"about.html",
 					"plus/events.html",
 					"plus/fit.html",
-					"plus/fit_line.html"
+					"plus/fit_line.html",
+					"plus/fit_one.html"
 				],
 				"priority": 0
 			},
@@ -1351,6 +1355,16 @@
 				"resources": [
 					"js/common.js",
 					"css/common.css",
+					"js/immersed.js"
+				],
+				"refer": [],
+				"priority": 0
+			},
+			"plus/fit_one.html": {
+				"resources": [
+					"js/common.js",
+					"fonts/mui.ttf",
+					"css/mui.min.css",
 					"js/immersed.js"
 				],
 				"refer": [],

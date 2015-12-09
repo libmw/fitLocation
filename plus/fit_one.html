@@ -7,9 +7,9 @@
 		<meta name="HandheldFriendly" content="true"/>
 		<meta name="MobileOptimized" content="320"/>
 		<title>Hello H5+</title>
-		<script type="text/javascript" src="./js/common.js"></script>
+		<script type="text/javascript" src="../js/common.js"></script>
 		
-		<link rel="stylesheet" href="css/mui.min.css" type="text/css" charset="utf-8"/>
+		<link rel="stylesheet" href="../css/mui.min.css" type="text/css" charset="utf-8"/>
 		<style>
 			.map-baidu{
 				height: 100%;
@@ -19,8 +19,8 @@
 	<body onselectstart="return false;">
 		<header class="mui-bar mui-bar-nav">
 			<a class="mui-icon mui-icon-bars mui-pull-left mui-plus-visible"></a>
-			<a id="info" onclick="clicked('plus/fit_line.html');" class="mui-icon mui-icon-info-filled mui-pull-right" style="color: #999;"></a>
-			<h1 class="mui-title"><span onclick="refreshMap();">最新位置</span></h1>
+			<a id="info" onclick="clicked('plus/fit_one.html');" class="mui-icon mui-icon-info-filled mui-pull-right" style="color: #999;"></a>
+			<h1 class="mui-title"><span onclick="refreshMap();">One1</span></h1>
 		</header>
 		<div class="mui-iframe-wrapper" style="top: 45px; bottom: 0px;">
 			<div id="mapContent" class="map-baidu">
@@ -28,30 +28,20 @@
 			</div>
 		</div>
 		
+		
 	</body>
-	<script type="text/javascript" src="./js/immersed.js" ></script>
+	<script type="text/javascript" src="../js/immersed.js" ></script>
 	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ndYEn2os3DVI5fW83tzaUkD4"></script>
 	<script>
-		function initMap(){
-			// 关闭启动界面
-			setTimeout(function(){
-				plus.navigator.closeSplashscreen();
-				if(plus.navigator.isImmersedStatusbar()){
-					plus.navigator.setStatusBarStyle('UIStatusBarStyleBlackOpaque');
-				}
-			},500);
-		
-			//初始化
-			var bMap = new BMap.Map('mapContent');
-			var point = new BMap.Point(108.483525, 35.254578); //中国中心
-			bMap.centerAndZoom(point, 12);
-			bMap.enableScrollWheelZoom();
-			bMap.addControl(new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_LEFT}));
-			var bPoint = new BMap.Point(point.lng, point.lat);
-			var marker = new BMap.Marker(bPoint);
-			bMap.addOverlay(marker);
-			refreshMap();
-		}
+		//初始化
+		var bMap = new BMap.Map('mapContent');
+		var point = new BMap.Point(108.483525, 35.254578); //中国中心
+		bMap.centerAndZoom(point, 12);
+		bMap.enableScrollWheelZoom();
+		bMap.addControl(new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_LEFT}));
+		var bPoint = new BMap.Point(point.lng, point.lat);
+		var marker = new BMap.Marker(bPoint);
+		bMap.addOverlay(marker);
 		
 		function refreshMap(){
 			
@@ -60,28 +50,29 @@
 			xhr.onreadystatechange = function () {
 		        switch ( xhr.readyState ) {
 		            case 0:
-		            	console.log( "xhr请求已初始化" );
+		            	outLine( "xhr请求已初始化" );
 		            break;
 		            case 1:
-		            	console.log( "xhr请求已打开" );
+		            	outLine( "xhr请求已打开" );
 		            break;
 		            case 2:
-		            	console.log( "xhr请求已发送" );
+		            	outLine( "xhr请求已发送" );
 		            break;
 		            case 3:
-		                console.log( "xhr请求已响应");
+		                outLine( "xhr请求已响应");
 		                break;
 		            case 4:
+		                outLine( "xhr请求已完成");
 		                if ( xhr.status == 200 ) {
-		                	console.log( "xhr请求成功："+xhr.responseText );
+		                	outLine( "xhr请求成功："+xhr.responseText );
 		                	var res = JSON.parse(xhr.responseText);
-		                	
+		                	outLine( res);
+		                	outLine( res.data);
 		                	if(res.data.current_value){
-		                		
 		                		getBaiduPointsByGps(res.data.current_value);
 		                	}
 		                } else {
-		                	console.log( "xhr请求失败："+xhr.status );
+		                	outLine( "xhr请求失败："+xhr.status );
 		                }
 		                break;
 		            default :
@@ -98,66 +89,70 @@
 		
 		
 		
-		function getBaiduPointsByGps(point){
+		function showMarker(gpsPoint){
+			
+			getBaiduPointsByGps([gpsPoint], function(outPoint){
+				var baiduPoint = outPoint[0];
+				if(baiduPoint.error != 0){
+					var point = new BMap.Point(baiduPoint.x, baiduPoint.y);
+	                marker.setPosition(point);
+	                bMap.panTo(point);
+	                outLine( '成功纠偏' + point);
+				}else{
+					alert('gps转百度地图坐标失败，可能是坐标为0或者在国外，或者格式不对');
+				}
+			});
+		}
+		
+		function getBaiduPointsByGps(point, callback){
+			var xhr = '';
 		    //发送请求
 			var xhr = new plus.net.XMLHttpRequest();
 			xhr.onreadystatechange = function () {
 		        switch ( xhr.readyState ) {
 		            case 0:
-		            	//outLine( "xhr请求已初始化" );
+		            	outLine( "xhr请求已初始化" );
 		            break;
 		            case 1:
-		            	//outLine( "xhr请求已打开" );
+		            	outLine( "xhr请求已打开" );
 		            break;
 		            case 2:
-		            	//outLine( "xhr请求已发送" );
+		            	outLine( "xhr请求已发送" );
 		            break;
 		            case 3:
-		                //outLine( "xhr请求已响应");
+		                outLine( "xhr请求已响应");
 		                break;
 		            case 4:
+		                outLine( "xhr请求已完成");
 		                if ( xhr.status == 200 ) {
-		                	console.log( "成功纠偏："+xhr.responseText );
+		                	outLine( "xhr请求成功："+xhr.responseText );
 		                	var res = JSON.parse(xhr.responseText);
 							if(res.error == 0){
 								var point = new BMap.Point(res.x, res.y);
 				                marker.setPosition(point);
 				                bMap.panTo(point);
-				                console.log( '成功纠偏' + point);
+				                outLine( '成功纠偏' + point);
 							}else{
-								plus.nativeUI.toast("gps转百度地图坐标失败，可能是坐标为0或者在国外，或者格式不对",{duration:"long"});
+								alert('gps转百度地图坐标失败，可能是坐标为0或者在国外，或者格式不对');
 							}
 				
-		                	console.log( res);
-		                	console.log( res.data);
+		                	outLine( res);
+		                	outLine( res.data);
 		                	if(res.data.current_value){
 		                		showMarker(res.data.current_value);
 		                	}
 		                } else {
-		                	console.log( "xhr请求失败："+xhr.status );
+		                	outLine( "xhr请求失败："+xhr.status );
 		                }
 		                break;
 		            default :
 		                break;
 		        }
 			};
-			console.log('url');
-			console.log(point.lat)
+			
 			var url='http://api.map.baidu.com/ag/coord/convert?from=0&to=4&x='+  point.lon +'&y='+ point.lat;
-			console.log(url)
-			console.log(xhr.open)
 			xhr.open( "GET", url );
 			xhr.send();
-			console.log('url33333333333');
 		}
-		if(window.plus){
-			initMap();
-		}else{
-			document.addEventListener('plusready',initMap,false);
-		}
-		
-		
-
-
 	</script>
 </html>
