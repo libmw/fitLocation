@@ -8,33 +8,124 @@
 		<title>Hello H5+</title>
 		<style>
 			.map-baidu{
-				height: 300px;
+				height: 100%;
 			}
 		</style>
 		<script type="text/javascript" src="../js/common.js"></script>
-		<link rel="stylesheet" href="../css/common.css" type="text/css" charset="utf-8"/>
+		<link rel="stylesheet" href="../css/mui.min.css" type="text/css" charset="utf-8"/>
+		<link rel="stylesheet" type="text/css" href="../css/mui.picker.min.css" />
 	</head>
 	<body>
-		<header id="header">
-			<div class="nvbt iback" onclick="back(true);"></div>
-			<div class="nvtt">XmlHttpRequest</div>
-			<div class="nvbt idoc" onclick="openDoc('XmlHttpRequest Document','/doc/xhr.html')"></div>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-icon mui-icon-bars mui-pull-left mui-plus-visible" onclick="back(true);"></a>
+			<h1 class="mui-title"><span onclick="refreshMap();">行驶轨迹</span></h1>
 		</header>
-		<div id="dcontent" class="dcontent">
-			<button onclick="alert(window.plus)">Plus</button>
-			<button onclick="loadPoints('2015-12-07T16:43:33', '2015-12-07T19:54:33')">Refresh</button>
+		
+		<div class="timePicker" style="margin-top: 45px;">
+			<button id="startTimeBtn" data-options='{"value":"2015-10-10 10:10","beginYear":2010,"endYear":2020}' class="btn mui-btn j_time_picker">选择日期时间 ...</button>
+			<button id="endTimeBtn" data-options='{"value":"2015-10-10 10:10","beginYear":2010,"endYear":2020}' class="btn mui-btn j_time_picker">选择日期时间 ...</button>
+			<button onclick="loadPoints()">绘制</button>
+		</div>
+		<div class="mui-iframe-wrapper" style="top: 85px; bottom: 0px;">
 			<div id="mapContent" class="map-baidu">
 				
 			</div>
 		</div>
-		<div id="output">
+		<div id="dcontent" class="dcontent">
+			
+		</div>
+		<div id="output" style="display:none;">
 XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 		</div>
 	</body>
 	<script type="text/javascript" src="../js/immersed.js" ></script>
 	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ndYEn2os3DVI5fW83tzaUkD4"></script>
+	<script src="../js/mui.min.js"></script>
+	<script src="../js/mui.picker.min.js"></script>
 	<script>
-		//点集合
+		mui.init();
+		var startTimeOptions;
+		var endTimeOptions;
+		
+		function getTimeOptions(year, month, date, time){
+			return {
+				value: year + '-' + month + '-' + date + ' ' + time,
+				beginYear: year - 5,
+				endYear:  year + 5
+			};
+		}
+		
+		function initStartAndEndTimeOptions(){
+			var currentTime = new Date();
+			var currentYear = currentTime.getFullYear();
+			var currentMonth = currentTime.getMonth() + 1;
+			var currentDate = currentTime.getDate();
+			
+			startTimeOptions = getTimeOptions(currentYear, currentMonth, currentDate, '06:00');
+			mui('#startTimeBtn')[0].innerText = currentYear + '-' + currentMonth + '-' + currentDate + ' ' + '06:00';
+			endTimeOptions = getTimeOptions(currentYear, currentMonth, currentDate, '23:59');
+			mui('#endTimeBtn')[0].innerText = currentYear + '-' + currentMonth + '-' + currentDate + ' ' + '23:59';
+		}
+		
+		initStartAndEndTimeOptions();
+		
+		(function($) {
+			
+			var btns = $('.j_time_picker');
+			
+			btns.each(function(i, btn) {
+				btn.addEventListener('tap', function(e) {
+					
+					var options;
+					if(e.target.id == 'startTimeBtn'){
+						options = startTimeOptions;
+					}else{
+						options = endTimeOptions;
+					}
+					var id = this.getAttribute('id');
+					/*
+					 * 首次显示时实例化组件
+					 * 示例为了简洁，将 options 放在了按钮的 dom 上
+					 * 也可以直接通过代码声明 optinos 用于实例化 DtPicker
+					 */
+					var picker = new $.DtPicker(options);
+					picker.show(function(rs) {
+						/*
+						 * rs.value 拼合后的 value
+						 * rs.text 拼合后的 text
+						 * rs.y 年，可以通过 rs.y.vaue 和 rs.y.text 获取值和文本
+						 * rs.m 月，用法同年
+						 * rs.d 日，用法同年
+						 * rs.h 时，用法同年
+						 * rs.i 分（minutes 的第二个字母），用法同年
+						 */
+						console.log('选择结果: ' + rs.text) ;
+						e.target.innerText = rs.text;
+						var options = getTimeOptions(rs.y.text, rs.m.text, rs.d.text, rs.h.text + ':' + rs.i.text);
+						if(e.target.id == 'startTimeBtn'){
+							startTimeOptions = options;
+						}else{
+							endTimeOptions = options;
+						}
+						
+						/* 
+						 * 返回 false 可以阻止选择框的关闭
+						 * return false;
+						 */
+						/*
+						 * 释放组件资源，释放后将将不能再操作组件
+						 * 通常情况下，不需要示放组件，new DtPicker(options) 后，可以一直使用。
+						 * 当前示例，因为内容较多，如不进行资原释放，在某些设备上会较慢。
+						 * 所以每次用完便立即调用 dispose 进行释放，下次用时再创建新实例。
+						 */
+						picker.dispose();
+					});
+				}, false);
+			});
+		})(mui);
+	</script>
+	<script>
+		/*//点集合
 		var pointsList;
 		//初始化
 		var bMap = new BMap.Map('mapContent');
@@ -44,10 +135,16 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 		bMap.addControl(new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_LEFT}));
 		var bPoint = new BMap.Point(point.lng, point.lat);
 		var marker = new BMap.Marker(bPoint);
-		bMap.addOverlay(marker);
+		bMap.addOverlay(marker);*/
 		
-		function loadPoints(start, end){
+		function loadPoints(){
+			//时间格式为2015-12-07T16:43:33
+			var startTime = startTimeBtn.innerText.replace(/\s/, 'T') + ':00';
+			var endTime = endTimeBtn.innerText.replace(/\s/, 'T') + ':59';
+			//
+			console.log('绘制' + startTime + 'to' + endTime);
 			//发送请求
+			
 			var xhr = new plus.net.XMLHttpRequest();
 			xhr.onreadystatechange = function () {
 		        switch ( xhr.readyState ) {
@@ -82,7 +179,7 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 		        }
 			};
 			
-			var url='http://api.heclouds.com/devices/600732/datapoints?datastream_id=gps&limit=3600&start='+start+'&end='+end;
+			var url='http://api.heclouds.com/devices/600732/datapoints?datastream_id=gps&limit=3600&start='+startTime+'&end='+endTime;
 			xhr.open( "GET", url );
 			xhr.setRequestHeader('api-key', 'eLmmxmJEL56HjIfzQTeH7jqTPAo=');
 			xhr.send();
