@@ -17,7 +17,7 @@
 	</head>
 	<body>
 		<header class="mui-bar mui-bar-nav">
-			<a class="mui-icon mui-icon-bars mui-pull-left mui-plus-visible" onclick="back(true);"></a>
+			<a class="mui-icon mui-pull-left mui-plus-visible" onclick="back(true);">返回</a>
 			<h1 class="mui-title"><span onclick="refreshMap();">行驶轨迹</span></h1>
 		</header>
 		
@@ -60,11 +60,14 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 			var currentYear = currentTime.getFullYear();
 			var currentMonth = currentTime.getMonth() + 1;
 			var currentDate = currentTime.getDate();
+			var currentHours = currentTime.getHours();
+			var currentMinutePre = currentTime.getMinutes() - 1;
+			currentMinutePre = currentMinutePre > 9 ? currentMinutePre : ('0' + currentMinutePre);
 			
 			startTimeOptions = getTimeOptions(currentYear, currentMonth, currentDate, '06:00');
 			mui('#startTimeBtn')[0].innerText = currentYear + '-' + currentMonth + '-' + currentDate + ' ' + '06:00';
-			endTimeOptions = getTimeOptions(currentYear, currentMonth, currentDate, '23:59');
-			mui('#endTimeBtn')[0].innerText = currentYear + '-' + currentMonth + '-' + currentDate + ' ' + '23:59';
+			endTimeOptions = getTimeOptions(currentYear, currentMonth, currentDate, currentHours + ':' + currentMinutePre);
+			mui('#endTimeBtn')[0].innerText = currentYear + '-' + currentMonth + '-' + currentDate + ' ' + currentHours + ':' + currentMinutePre;
 		}
 		
 		initStartAndEndTimeOptions();
@@ -125,7 +128,12 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 		})(mui);
 	</script>
 	<script>
-		/*//点集合
+	
+		var waitUi;
+		var waitTimeOut;
+		
+		
+		//点集合
 		var pointsList;
 		//初始化
 		var bMap = new BMap.Map('mapContent');
@@ -135,9 +143,17 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 		bMap.addControl(new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_LEFT}));
 		var bPoint = new BMap.Point(point.lng, point.lat);
 		var marker = new BMap.Marker(bPoint);
-		bMap.addOverlay(marker);*/
+		bMap.addOverlay(marker);
 		
 		function loadPoints(){
+			if(waitUi){
+				waitUi.close();
+			}
+			waitUi = plus.nativeUI.showWaiting('加载中');
+			waitTimeOut = setTimeout(function(){
+				waitUi.close();
+			}, 10000);
+			
 			//时间格式为2015-12-07T16:43:33
 			var startTime = startTimeBtn.innerText.replace(/\s/, 'T') + ':00';
 			var endTime = endTimeBtn.innerText.replace(/\s/, 'T') + ':59';
@@ -149,29 +165,46 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 			xhr.onreadystatechange = function () {
 		        switch ( xhr.readyState ) {
 		            case 0:
-		            	//outLine( "xhr请求已初始化" );
+		            	//console.log( "xhr请求已初始化" );
 		            break;
 		            case 1:
-		            	//outLine( "xhr请求已打开" );
+		            	//console.log( "xhr请求已打开" );
 		            break;
 		            case 2:
-		            	//outLine( "xhr请求已发送" );
+		            	//console.log( "xhr请求已发送" );
 		            break;
 		            case 3:
-		                //outLine( "xhr请求已响应");
+		                //console.log( "xhr请求已响应");
 		                break;
 		            case 4:
-		                outLine( "xhr请求已完成");
+		                console.log( "xhr请求已完成");
+		                console.log(xhr.responseText);
+		                console.log(xhr.status)
 		                if ( xhr.status == 200 ) {
-		                	
 		                	var res = JSON.parse(xhr.responseText);
-		                	//outLine( res);
-		                	//outLine( res.data);
-		                	if(res.data.datastreams[0].datapoints){
-		                		converPoints(res.data.datastreams[0].datapoints);
+		                	if(res.errno == 0){
+		                		if(res.data.datastreams.length == 0){
+		                			plus.nativeUI.toast('此时间段无数据');
+			                		waitUi.close();
+		                		}else{
+		                			if(res.data.datastreams[0].datapoints){
+			                			converPoints(res.data.datastreams[0].datapoints);
+				                	}else{
+				                		plus.nativeUI.toast('加载数据失败,没有datapoints');
+				                		waitUi.close();
+				                	}
+		                		}
+			                	
+		                	}else{
+		                		console.log(188)
+		                		plus.nativeUI.toast('加载数据失败' + res.errno,{duration:"long"});
+		                		waitUi.close();
 		                	}
+		                	
+		                	//console.log( res);
+		                	
 		                } else {
-		                	outLine( "xhr请求失败："+xhr.status );
+		                	console.log( "xhr请求失败："+xhr.status );
 		                }
 		                break;
 		            default :
@@ -179,10 +212,14 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 		        }
 			};
 			
-			var url='http://api.heclouds.com/devices/600732/datapoints?datastream_id=gps&limit=3600&start='+startTime+'&end='+endTime;
+			try{
+			var url='http://api.heclouds.com/devices/618977/datapoints?datastream_id=gps&limit=3600&start='+startTime+'&end='+endTime;
 			xhr.open( "GET", url );
-			xhr.setRequestHeader('api-key', 'eLmmxmJEL56HjIfzQTeH7jqTPAo=');
+			xhr.setRequestHeader('api-key', 'HDt=Cc7dwOqQx1zN2KKWBBw36LY=');
 			xhr.send();
+			}catch(e){
+				console.log(e);
+			}
 		}
 		
 		
@@ -191,52 +228,50 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 			return lon > 73 && lon < 137 && lat > 1 && lat < 55;
 		}
 		
-		function converPoints(points, callback){
-			
-			pointsList = points;
-			
+		function converPoints(points){
 			var baiduPoints = [];
-			outLine('点位个数：' + points.length);
 			for(var i = 0, len = points.length, split = Math.ceil(len / 100); i < len; i++){
 				var point = points[i].value;
 				if(point.lat && point.lon && checkPoint(point.lon, point.lat)  && (i % split == 0) && baiduPoints.length < 100){ //最多纠偏100个点
 					baiduPoints.push(point.lon + ',' + point.lat);
+				}else{
+					
 				}
-				
 			}
-			outLine( "baiduPointsLength:" + baiduPoints.length);
-			console.log(baiduPoints.join(';'));
 			
 			//纠偏
 			var xhr = new plus.net.XMLHttpRequest();
 			xhr.onreadystatechange = function () {
 		        switch ( xhr.readyState ) {
 		            case 0:
-		            	//outLine( "xhr请求已初始化" );
+		            	//console.log( "xhr请求已初始化" );
 		            break;
 		            case 1:
 		            	//utLine( "xhr请求已打开" );
 		            break;
 		            case 2:
-		            	//outLine( "xhr请求已发送" );
+		            	//console.log( "xhr请求已发送" );
 		            break;
 		            case 3:
-		               // outLine( "xhr请求已响应");
+		               // console.log( "xhr请求已响应");
 		                break;
 		            case 4:
-		               // outLine( "xhr请求已完成");
+		               // console.log( "xhr请求已完成");
 		                if ( xhr.status == 200 ) {
 		                	
 		                	var res = JSON.parse(xhr.responseText);
-		                	//outLine( res);
-		                	//outLine( res.data);
+		                	//console.log( res);
+		                	//console.log( res.data);
 		                	if(res.result){
 		                		renderPath(res.result);
 		                	}else{
 		                		outSet('纠偏不成功，返回status:' + res.status);
+		                		plus.nativeUI.toast('纠偏不成功，返回status:' + res.status,{duration:"long"});
+								waitUi.close();
 		                	}
 		                } else {
-		                	outLine( "xhr请求失败："+xhr.status );
+		                	plus.nativeUI.toast('纠偏失败，网络错误' + res.status,{duration:"long"});
+								waitUi.close();
 		                }
 		                break;
 		            default :
@@ -248,45 +283,26 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 			console.log(url)
 			xhr.open( "GET", url );
 			xhr.send();
-			/*
-			
-			
-			
-			 //坐标转换完之后的回调函数
-		    translateCallback = function (data){
-		    	outLine( "translateCallback:" + JSON.stringify(data));
-		      if(data.status === 0) {
-		      	var polygonPoints = [];
-		        for(var i = 0, len = data.points.length; i < len; i++){
-		        	var point = new BMap.Point(data.points[i].lng, data.points[i].lat);
-		        	polygonPoints.push(point);
-		        	//bMap.addOverlay(new BMap.Marker(point));
-		        }
-		        marker.setPosition(point);
-		        var polyline = new BMap.Polyline(polygonPoints, {strokeColor:"blue", strokeWeight:2, strokeOpacity:0.5});
-		        bMap.addOverlay(polyline);
-		        outLine( "over:"+ polygonPoints.length);
-		      }
-		    }
-		    setTimeout(function(){
-		    	outLine( "Convertor:" + BMap.Convertor);
-		        var convertor = new BMap.Convertor();
-		        convertor.translate(baiduPoints, 1, 5, translateCallback)
-		    }, 1000);*/
 		}
 		function renderPath(points){
 			var ppolylinePoints = [];
-			outLine( "开始绘制：");
-			outLine( "路径点总数："+points.length );
+			console.log( "开始绘制：");
+			console.log( "路径点总数："+points.length );
 			console.log("路径点总数："+points.length);
 	        for(var i = 0, len = points.length; i < len; i++){
 	        	var point = new BMap.Point(points[i].x, points[i].y);
 	        	ppolylinePoints.push(point);
 	        	//bMap.addOverlay(new BMap.Marker(point));
 	        }
+	        waitUi.close();
 	        marker.setPosition(point);
+	        bMap.setViewport(ppolylinePoints);
 	        var polyline = new BMap.Polyline(ppolylinePoints, {strokeColor:"blue", strokeWeight:2, strokeOpacity:0.5});
 	        bMap.addOverlay(polyline);
+		}
+		
+		window.onerror = function(msg,url,l){
+			console.log('错误：' + msg + '；行' + l);
 		}
 	</script>
 	
