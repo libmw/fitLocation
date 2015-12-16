@@ -62,7 +62,8 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 			var currentDate = currentTime.getDate();
 			var currentHours = currentTime.getHours();
 			var currentMinutePre = currentTime.getMinutes() - 1;
-			currentMinutePre = currentMinutePre > 9 ? currentMinutePre : ('0' + currentMinutePre);
+			currentHours = getFullNumber(currentHours);
+			currentMinutePre = getFullNumber(currentMinutePre);
 			
 			startTimeOptions = getTimeOptions(currentYear, currentMonth, currentDate, '06:00');
 			mui('#startTimeBtn')[0].innerText = currentYear + '-' + currentMonth + '-' + currentDate + ' ' + '06:00';
@@ -71,6 +72,10 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 		}
 		
 		initStartAndEndTimeOptions();
+		
+		function getFullNumber(n){
+			return n > 9 ? n : ('0' + n);
+		}
 		
 		(function($) {
 			
@@ -196,8 +201,8 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 		                		}
 			                	
 		                	}else{
-		                		console.log(188)
-		                		plus.nativeUI.toast('加载数据失败' + res.errno,{duration:"long"});
+		                		console.log(res)
+		                		plus.nativeUI.toast('加载数据失败' + res.error,{duration:"long"});
 		                		waitUi.close();
 		                	}
 		                	
