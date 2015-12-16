@@ -570,7 +570,8 @@
 					"plus/geolocation.html",
 					"about.html",
 					"plus/events.html",
-					"plus/fit_line.html"
+					"plus/fit_line.html",
+					"plus/fit_line1.html"
 				],
 				"priority": 0
 			},
@@ -1232,6 +1233,19 @@
 					"css/mui.min.css",
 					"css/mui.picker.min.css",
 					"js/immersed.js"
+				],
+				"refer": [],
+				"priority": 0
+			},
+			"plus/fit_line1.html": {
+				"resources": [
+					"js/common.js",
+					"js/mui.picker.min.js",
+					"js/mui.min.js",
+					"css/mui.min.css",
+					"css/mui.picker.min.css",
+					"js/immersed.js",
+					"fonts/mui.ttf"
 				],
 				"refer": [],
 				"priority": 0

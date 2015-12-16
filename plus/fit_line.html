@@ -48,6 +48,9 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 		var endTimeOptions;
 		
 		function getTimeOptions(year, month, date, time){
+			year = +year;
+			month = +month;
+			date = +date;
 			return {
 				value: year + '-' + month + '-' + date + ' ' + time,
 				beginYear: year - 5,
@@ -104,12 +107,13 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 						 */
 						console.log('选择结果: ' + rs.text) ;
 						e.target.innerText = rs.text;
-						var options = getTimeOptions(rs.y.text, rs.m.text, rs.d.text, rs.h.text + ':' + rs.i.text);
+						var newOptions = getTimeOptions(rs.y.text, rs.m.text, rs.d.text, rs.h.text + ':' + rs.i.text);
 						if(e.target.id == 'startTimeBtn'){
-							startTimeOptions = options;
+							startTimeOptions = newOptions;
 						}else{
-							endTimeOptions = options;
+							endTimeOptions = newOptions;
 						}
+						console.log(JSON.stringify(newOptions))
 						
 						/* 
 						 * 返回 false 可以阻止选择框的关闭
