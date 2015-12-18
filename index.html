@@ -35,6 +35,8 @@
 		var waitTimeOut;
 		var marker;
 		var bMap;
+		var bPoint;
+		var infoWindow;
 		
 		function initMap(){
 			// 关闭启动界面
@@ -49,12 +51,23 @@
 		
 			//初始化
 			bMap = new BMap.Map('mapContent');
-			var point = new BMap.Point(108.483525, 35.254578); //中国中心
-			bMap.centerAndZoom(point, 17);
+			bPoint = new BMap.Point(108.483525, 35.254578);
+			bMap.centerAndZoom(bPoint, 17);
 			bMap.enableScrollWheelZoom();
 			bMap.addControl(new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_LEFT}));
-			var bPoint = new BMap.Point(point.lng, point.lat);
+			
 			marker = new BMap.Marker(bPoint);
+			var opts = {
+			  width : 200,     // 信息窗口宽度
+			  height: 100,     // 信息窗口高度
+			  title : "" , // 信息窗口标题
+			  enableMessage:true,//设置允许信息窗发送短息
+			  message:""
+			}
+			infoWindow = new BMap.InfoWindow("无法获取最新地址", opts);  // 创建信息窗口对象 
+			marker.addEventListener("click", function(){          
+				bMap.openInfoWindow(infoWindow, bPoint); //开启信息窗口
+			});
 			bMap.addOverlay(marker);
 			refreshMap();
 		}
@@ -76,6 +89,7 @@
 		                	console.log( "xhr请求成功："+xhr.responseText );
 		                	var res = JSON.parse(xhr.responseText);
 		                	if(res.data.current_value){
+				                infoWindow.setContent('最后更新时间:' + res.data.update_at);
 		                		getBaiduPointsByGps(res.data.current_value);
 		                	}else{
 		                		plus.nativeUI.toast('服务器返回坐标格式有误',{duration:"long"});
@@ -125,12 +139,13 @@
 		                	var res = JSON.parse(xhr.responseText);
 	                		if(res.error == 0){
 								console.log( '120');
-								var point = new BMap.Point(res.x, res.y);
+								bPoint = new BMap.Point(res.x, res.y);
 								console.log( '122');
-				                marker.setPosition(point);
+				                marker.setPosition(bPoint);
 				                console.log( '124');
-				                bMap.panTo(point);
-				                console.log( '成功纠偏' + point);
+				                bMap.panTo(bPoint);
+
+				                console.log( '成功纠偏' + bPoint);
 							}else{
 								plus.nativeUI.toast('gps转百度地图坐标失败，可能是坐标为0或者在国外，或者格式不对',{duration:"long"});
 							}
@@ -159,7 +174,9 @@
 		}
 		
 		
-
+window.onerror = function(msg,url,l){
+			console.log('错误：' + msg + '；行' + l);
+		}
 
 	</script>
 </html>

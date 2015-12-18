@@ -306,6 +306,7 @@ XMLHttpRequest管理网络请求操作，可进行跨域网络数据请求。
 	        waitUi.close();
 	        marker.setPosition(point);
 	        bMap.setViewport(ppolylinePoints);
+	        bMap.clearOverlays(); 
 	        var polyline = new BMap.Polyline(ppolylinePoints, {strokeColor:"blue", strokeWeight:2, strokeOpacity:0.5});
 	        bMap.addOverlay(polyline);
 		}
